@@ -12,7 +12,7 @@ Planned features:
  - Text to right of veiwScreen (currently blank)
  - Start screen
  - Goal (end of game)
- - Moving veiw to not show entire map
+ - Moving veiw to not show entire map only nearby section (only vertical rn)
  - Support for different rooms
 
 REQUIRES WINDOWS
