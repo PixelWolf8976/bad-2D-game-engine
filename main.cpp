@@ -1,6 +1,7 @@
 #include <iostream>
 #include <conio.h>
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -28,7 +29,13 @@ public:
 };
 
 int main() {
-	// FullScreen is 247 chars Wide
+	// FullScreen is 247 chars Wide on my monitor, different for almost every other monitor
+
+	// Vertical veiw distance in chars total (top to bottom)
+	int vVD{ 51 };
+
+	// Horizontal veiw distance in chars total (left to right)
+	int hVD{ 101 };
 
 	// The character the player plays as
 	char playerChar{ '0' };
@@ -136,8 +143,9 @@ int main() {
 		}
 
 		// Clears and re-displays the screen after every move
-		system("cls");
-		cout << compiledMap;
+		string displayClearer{ "\033[" + to_string(vVD) + "A\r" };
+
+		cout << displayClearer << compiledMap;
 
 		// Gets users input
 		movementChar = _getch();
