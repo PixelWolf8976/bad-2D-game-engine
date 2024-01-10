@@ -12,3 +12,4 @@ Planned features:
  - Text to right of veiwScreen (currently blank)
  - Start screen
  - Goal (end of game)
+ - Moving veiw to not show entire map
