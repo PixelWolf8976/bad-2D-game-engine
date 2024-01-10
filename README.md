@@ -13,6 +13,7 @@ Planned features:
  - Start screen
  - Goal (end of game)
  - Moving veiw to not show entire map
+ - Support for different rooms
 
 REQUIRES WINDOWS
 (Yes, I will make version for Mac and Linux, it is just one line that dosent work)
