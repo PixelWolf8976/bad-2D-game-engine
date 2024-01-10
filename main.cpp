@@ -31,8 +31,8 @@ public:
 int main() {
 	// FullScreen is 247 chars Wide on my monitor, different for almost every other monitor
 
-	// Vertical view distance in chars total (top to bottom)
-	int vvd{ 51 };
+	// Vertical view distance in chars total (top to bottom) CANNOT be bigger than screen height (moves cursor to top left of screen, not terminal)
+	int vvd{ 40 };
 
 	// Horizontal view distance in chars total (left to right)
 	int hvd{ 100 };
@@ -93,41 +93,6 @@ int main() {
 		"#                                                                                                  #",
 		"#                                                                                                  #",
 		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
 		"####################################################################################################"
 	};
 
@@ -143,6 +108,14 @@ int main() {
 				playerPosition = { x, y };
 			}
 		}
+	}
+
+	if (hvd > map[playerPosition[1]].length()) {
+		hvd = map[playerPosition[1]].length() - 1;
+	}
+
+	if (vvd > map.size()) {
+		vvd = map.size();
 	}
 
 	// Default character to place on the floor when the character moves
@@ -178,7 +151,7 @@ int main() {
 		// Half of the horizontal view distance
 		int hlfHVD{ (int)((hvd / 2) + 0.5) };
 
-		// Turns map into a single string to make dynamic view distance work
+		// Turns map into a single string to make dynamic view distance work (with border)
 		if (playerPosition[1] - hlfVVD < 0) {
 			for (int i = 0; i < vvd; i++) {
 				if (playerPosition[0] - hlfHVD < 0) {
@@ -206,7 +179,7 @@ int main() {
 			}
 		}
 		else {
-			for (int i = (playerPosition[1] - hlfVVD); i <= (playerPosition[1] + hlfVVD); i++) {
+			for (int i = (playerPosition[1] - hlfVVD); i <= (playerPosition[1] + hlfVVD) - 1; i++) {
 				if (playerPosition[0] - hlfHVD < 0) {
 					display += map[i].substr(0, hvd) + "\n";
 				}
