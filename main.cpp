@@ -31,11 +31,11 @@ public:
 int main() {
 	// FullScreen is 247 chars Wide on my monitor, different for almost every other monitor
 
-	// Vertical veiw distance in chars total (top to bottom)
-	int vVD{ 51 };
+	// Vertical view distance in chars total (top to bottom)
+	int vvd{ 51 };
 
-	// Horizontal veiw distance in chars total (left to right)
-	int hVD{ 101 };
+	// Horizontal view distance in chars total (left to right)
+	int hvd{ 101 };
 
 	// The character the player plays as
 	char playerChar{ '0' };
@@ -99,12 +99,63 @@ int main() {
 		"#                                                                                                  #",
 		"#                                                                                                  #",
 		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
+		"#                                                                                                  #",
 		"####################################################################################################"
 	};
 
 	// Player position in coordinates 
 	// { x, y }
-	// { 1, 0 }
+	// { 0, 1 }
 	vector<int> playerPosition{};
 
 	// Gets player's start location
@@ -124,6 +175,12 @@ int main() {
 	char floorChar{ defaultFloorChar };
 
 	do {
+		// Part of map to display
+		string display{ "" };
+
+		// Code to overwrite display
+		string displayClearer{ "\033[" + to_string(vvd * 2) + "A\r" };
+
 		// Which way the player moves
 		char movementChar{};
 
@@ -138,14 +195,23 @@ int main() {
 		bool r{ false };
 
 		// Turns map into a single string to make output faster
-		for (int i = 0; i < map.size(); i++) {
-			compiledMap += map[i] + "\n";
+		if (playerPosition[1] - (vvd / 2) < 0) {
+			for (int i = 0; i < vvd; i++) {
+				display += map[i] + "\n";
+			}
+		}
+		else if (playerPosition[1] + (int)(vvd / 2) >= map.size()) {
+			for (int i = map.size() - vvd; i < map.size(); i++) {
+				display += map[i] + "\n";
+			}
+		}
+		else {
+			for (int i = (playerPosition[1] - (vvd / 2)); i < (playerPosition[1] + (vvd / 2)); i++) {
+				display += map[i] + "\n";
+			}
 		}
 
-		// Clears and re-displays the screen after every move
-		string displayClearer{ "\033[" + to_string(vVD) + "A\r" };
-
-		cout << displayClearer << compiledMap;
+		cout << displayClearer << display;
 
 		// Gets users input
 		movementChar = _getch();
