@@ -219,18 +219,6 @@ int main() {
 			}
 		}
 
-		/*
-		if (playerPosition[0] - hlfHVD < 0) {
-			display += map[i].substr(0, hvd) + "\n";
-		}
-		else if (playerPosition[0] + hlfHVD >= map[i].size()) {
-			display += map[i].substr(map[i].length() - 1 - hvd, hvd) + "\n";
-		}
-		else {
-			display += map[i].substr(playerPosition[0] - hlfHVD, hvd) + "\n";
-		}
-		*/
-
 		// Output
 		cout << displayClearer << display;
 
@@ -289,35 +277,27 @@ int main() {
 		}
 
 		// Checks to see if player runs into wall or closed door
-		// if (playerPosition[0] < map[playerPosition[1]].length()) {
-			if (map[playerPosition[1]][playerPosition[0]] == '#') {
-				playerPosition = oldCoords;
-				if (l) {
-					playerPosition[0]--;
-					if (map[playerPosition[1]][playerPosition[0]] == '#') {
-						playerPosition = oldCoords;
-					}
-				}
-				else if (r) {
-					playerPosition[0]++;
-					if (map[playerPosition[1]][playerPosition[0]] == '#') {
-						playerPosition = oldCoords;
-					}
+		if (map[playerPosition[1]][playerPosition[0]] == '#') {
+			playerPosition = oldCoords;
+			if (l) {
+				playerPosition[0]--;
+				if (map[playerPosition[1]][playerPosition[0]] == '#') {
+					playerPosition = oldCoords;
 				}
 			}
-			else if (map[playerPosition[1]][playerPosition[0] + 1] == '#' && l) {
-				playerPosition = oldCoords;
+			else if (r) {
+				playerPosition[0]++;
+				if (map[playerPosition[1]][playerPosition[0]] == '#') {
+					playerPosition = oldCoords;
+				}
 			}
-			else if (map[playerPosition[1]][playerPosition[0] - 1] == '#' && r) {
-				playerPosition = oldCoords;
-			}
-		// }
-		// else {
-		// 	playerPosition[0]++;
-		// 	if (map[playerPosition[1]][playerPosition[0]] == '#') {
-		//		playerPosition = oldCoords;
-		//	}
-		// }
+		}
+		else if (map[playerPosition[1]][playerPosition[0] + 1] == '#' && l) {
+			playerPosition = oldCoords;
+		}
+		else if (map[playerPosition[1]][playerPosition[0] - 1] == '#' && r) {
+			playerPosition = oldCoords;
+		}
 
 		for (auto& key : keys) {
 			for (auto doors : key.openableDoors) {
