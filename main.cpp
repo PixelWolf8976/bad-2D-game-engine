@@ -35,7 +35,7 @@ int main() {
 	int vvd{ 51 };
 
 	// Horizontal view distance in chars total (left to right)
-	int hvd{ 101 };
+	int hvd{ 100 };
 
 	// The character the player plays as
 	char playerChar{ '0' };
@@ -52,7 +52,7 @@ int main() {
 		"####################################################################################################",
 		"#                        #                                                                         #",
 		"#                        #                                                                         #",
-		"#    0         F         #                                                                         #",
+		"#    0         F                                                                                   #",
 		"#                        #                                                                         #",
 		"#                        #                                                                         #",
 		"#       F                #                                                                         #",
@@ -64,28 +64,6 @@ int main() {
 		"#                        #                                                                         #",
 		"#                        #                                                                         #",
 		"###[]###{}####()####<>####                                                                         #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
-		"#                                                                                                  #",
 		"#                                                                                                  #",
 		"#                                                                                                  #",
 		"#                                                                                                  #",
@@ -194,23 +172,66 @@ int main() {
 		bool l{ false };
 		bool r{ false };
 
-		// Turns map into a single string to make output faster
-		if (playerPosition[1] - (vvd / 2) < 0) {
+		// Half of the vertical view distance
+		int hlfVVD{ (int)((vvd / 2) + 0.5) };
+
+		// Half of the horizontal view distance
+		int hlfHVD{ (int)((hvd / 2) + 0.5) };
+
+		// Turns map into a single string to make dynamic view distance work
+		if (playerPosition[1] - hlfVVD < 0) {
 			for (int i = 0; i < vvd; i++) {
-				display += map[i] + "\n";
+				if (playerPosition[0] - hlfHVD < 0) {
+					display += map[i].substr(0, hvd) + "\n";
+				}
+				else if (playerPosition[0] + hlfHVD >= map[i].length()) {
+					display += map[i].substr(map[i].length() - hvd, hvd + 1) + "\n";
+				}
+				else {
+					display += map[i].substr(playerPosition[0] - hlfHVD, hvd) + "\n";
+				}
 			}
 		}
-		else if (playerPosition[1] + (int)(vvd / 2) >= map.size()) {
-			for (int i = map.size() - vvd; i < map.size(); i++) {
-				display += map[i] + "\n";
+		else if (playerPosition[1] + hlfVVD >= map.size()) {
+			for (int i = map.size() + 0.5 - vvd; i < map.size(); i++) {
+				if (playerPosition[0] - hlfHVD < 0) {
+					display += map[i].substr(0, hvd) + "\n";
+				}
+				else if (playerPosition[0] + hlfHVD >= map[i].length()) {
+					display += map[i].substr(map[i].length() - hvd, hvd + 1) + "\n";
+				}
+				else {
+					display += map[i].substr(playerPosition[0] - hlfHVD, hvd) + "\n";
+				}
 			}
 		}
 		else {
-			for (int i = (playerPosition[1] - (vvd / 2)); i < (playerPosition[1] + (vvd / 2)); i++) {
-				display += map[i] + "\n";
+			for (int i = (playerPosition[1] - hlfVVD); i <= (playerPosition[1] + hlfVVD); i++) {
+				if (playerPosition[0] - hlfHVD < 0) {
+					display += map[i].substr(0, hvd) + "\n";
+				}
+				else if (playerPosition[0] + hlfHVD >= map[i].length()) {
+					display += map[i].substr(map[i].length() - hvd, hvd + 1) + "\n";
+				}
+				else {
+					display += map[i].substr(playerPosition[0] - hlfHVD, hvd) + "\n";
+				}
 			}
 		}
 
+		/*
+		if (playerPosition[0] - hlfHVD < 0) {
+			display += map[i].substr(0, hvd) + "\n";
+		}
+		else if (playerPosition[0] + hlfHVD >= map[i].size()) {
+			display += map[i].substr(map[i].length() - 1 - hvd, hvd) + "\n";
+		}
+		else {
+			display += map[i].substr(playerPosition[0] - hlfHVD, hvd) + "\n";
+		}
+		*/
+
+		// Output
 		cout << displayClearer << display;
 
 		// Gets users input
@@ -226,9 +247,15 @@ int main() {
 		else if (movementChar == 'a' || movementChar == 'K') {
 			playerPosition[0] -= 2;
 			l = true;
+			if (playerPosition[0] < 0) {
+				playerPosition[0] += 2;
+			}
 		}
 		else if (movementChar == 'd' || movementChar == 'M') {
 			playerPosition[0] += 2;
+			if (playerPosition[0] >= map[playerPosition[1]].length()) {
+				playerPosition[0] -= 2;
+			}
 			r = true;
 		}
 
@@ -262,27 +289,35 @@ int main() {
 		}
 
 		// Checks to see if player runs into wall or closed door
-		if (map[playerPosition[1]][playerPosition[0]] == '#') {
-			playerPosition = oldCoords;
-			if (l) {
-				playerPosition[0]--;
-				if (map[playerPosition[1]][playerPosition[0]] == '#') {
-					playerPosition = oldCoords;
+		// if (playerPosition[0] < map[playerPosition[1]].length()) {
+			if (map[playerPosition[1]][playerPosition[0]] == '#') {
+				playerPosition = oldCoords;
+				if (l) {
+					playerPosition[0]--;
+					if (map[playerPosition[1]][playerPosition[0]] == '#') {
+						playerPosition = oldCoords;
+					}
+				}
+				else if (r) {
+					playerPosition[0]++;
+					if (map[playerPosition[1]][playerPosition[0]] == '#') {
+						playerPosition = oldCoords;
+					}
 				}
 			}
-			else if (r) {
-				playerPosition[0]++;
-				if (map[playerPosition[1]][playerPosition[0]] == '#') {
-					playerPosition = oldCoords;
-				}
+			else if (map[playerPosition[1]][playerPosition[0] + 1] == '#' && l) {
+				playerPosition = oldCoords;
 			}
-		}
-		else if (map[playerPosition[1]][playerPosition[0] + 1] == '#' && l) {
-			playerPosition = oldCoords;
-		}
-		else if (map[playerPosition[1]][playerPosition[0] - 1] == '#' && r) {
-			playerPosition = oldCoords;
-		}
+			else if (map[playerPosition[1]][playerPosition[0] - 1] == '#' && r) {
+				playerPosition = oldCoords;
+			}
+		// }
+		// else {
+		// 	playerPosition[0]++;
+		// 	if (map[playerPosition[1]][playerPosition[0]] == '#') {
+		//		playerPosition = oldCoords;
+		//	}
+		// }
 
 		for (auto& key : keys) {
 			for (auto doors : key.openableDoors) {
@@ -320,33 +355,35 @@ int main() {
 
 		// Checks to see if player picks up item off ground
 		for (auto& key : keys) {
-			if (map[playerPosition[1]][playerPosition[0]] == key.keyChar && !key.hasKey) {
-				map[playerPosition[1]][playerPosition[0]] = floorChar;
-				for (auto& key1 : keys) {
-					if (key1.keyChar == key.keyChar) {
-						key1.hasKey = true;
+			// if (playerPosition[0] < map[playerPosition[1]].length()) {
+				if (map[playerPosition[1]][playerPosition[0]] == key.keyChar && !key.hasKey) {
+					map[playerPosition[1]][playerPosition[0]] = floorChar;
+					for (auto& key1 : keys) {
+						if (key1.keyChar == key.keyChar) {
+							key1.hasKey = true;
+						}
 					}
 				}
-			}
-			else if (l && map[playerPosition[1]][playerPosition[0] + 1] == key.keyChar && !key.hasKey) {
-				map[playerPosition[1]][playerPosition[0] + 1] = floorChar;
-				for (auto& key1 : keys) {
-					if (key1.keyChar == key.keyChar) {
-						key1.hasKey = true;
+				else if (l && map[playerPosition[1]][playerPosition[0] + 1] == key.keyChar && !key.hasKey) {
+					map[playerPosition[1]][playerPosition[0] + 1] = floorChar;
+					for (auto& key1 : keys) {
+						if (key1.keyChar == key.keyChar) {
+							key1.hasKey = true;
+						}
 					}
 				}
-			}
-			else if (r && map[playerPosition[1]][playerPosition[0] - 1] == key.keyChar && !key.hasKey) {
-				map[playerPosition[1]][playerPosition[0] - 1] = floorChar;
-				for (auto& key1 : keys) {
-					if (key1.keyChar == key.keyChar) {
-						key1.hasKey = true;
+				else if (r && map[playerPosition[1]][playerPosition[0] - 1] == key.keyChar && !key.hasKey) {
+					map[playerPosition[1]][playerPosition[0] - 1] = floorChar;
+					for (auto& key1 : keys) {
+						if (key1.keyChar == key.keyChar) {
+							key1.hasKey = true;
+						}
 					}
 				}
-			}
-			else if (map[playerPosition[1]][playerPosition[0]] == key.keyChar && key.hasKey) {
-				floorChar = key.keyChar;
-			}
+				else if (map[playerPosition[1]][playerPosition[0]] == key.keyChar && key.hasKey) {
+					floorChar = key.keyChar;
+				}
+			// }
 		}
 
 		//map[oldCoords[1]][oldCoords[0]] = floorChar;
