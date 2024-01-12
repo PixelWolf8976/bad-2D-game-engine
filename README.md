@@ -6,6 +6,7 @@ Includes:
  - Customisable map
  - Doors with keys
  - Moving veiw to not show entire map only nearby section
+ - Support for different rooms
 
 Planned features:
 
@@ -13,7 +14,6 @@ Planned features:
  - Text to right of veiwScreen (currently blank)
  - Start screen
  - Goal (end of game)
- - Support for different rooms
 
 REQUIRES WINDOWS
-(Yes, I will make version for Mac and Linux, it is just one line that dosent work (why _getch(), whyyy))
+(Yes, I will make version for Mac and Linux, it is just two things that dont work (why _getch() and windows escape codes, whyyy))
