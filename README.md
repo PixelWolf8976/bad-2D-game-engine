@@ -10,10 +10,13 @@ Includes:
 
 Planned features:
 
- - Enemies (with pathfinding)
+ - Enemies (with pathfinding) (pathfinding done, just crashes if there is no valid path)
  - Text to right of veiwScreen (currently blank)
  - Start screen
  - Goal (end of game)
 
 REQUIRES WINDOWS
 (Yes, I will make version for Mac and Linux, it is just two things that dont work (why _getch() and windows escape codes, whyyy))
+
+----WARNING----
+You have to scroll all the way to the top before moving otherwise it copies the map that was out of frame (idk why)
