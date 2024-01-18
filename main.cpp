@@ -2,8 +2,26 @@
 #include <conio.h>
 #include <vector>
 #include <string>
+#include <exception>
+#include <queue>
+#include <limits>
+#include <set>
+#include <climits>
+#include <algorithm>
 
 using namespace std;
+
+class EnemyDamageOutOfRange : public exception {
+private:
+	string errorMessage{};
+
+public:
+	EnemyDamageOutOfRange(const char* message) : errorMessage(message) {}
+
+	const char* what() const noexcept override {
+		return errorMessage.c_str();
+	}
+};
 
 class Key {
 public:
@@ -42,9 +60,116 @@ public:
 	}
 };
 
-int main() {
-	// FullScreen is 247 chars Wide on my monitor, different for almost every other monitor
+// Idk, used in all enemies so may as well put here
+class Enemy {
+public:
+	vector<int> enemyCoords{}; // Position of enemy
+	int level{}; // What level the enemy is on
+	char enemyChar{}; // The char that represents this enemy
+	int damage{}; // -1 for insta kill otherwise in hp
 
+	Enemy(vector<int> enemyCoords, int level, char enemyChar, int damage) {
+		this->enemyCoords = enemyCoords;
+		this->level = level;
+		this->enemyChar = enemyChar;
+		this->damage = damage;
+
+		if (damage < -1) {
+			throw EnemyDamageOutOfRange("Damage must be greater than -1!");
+		}
+	}
+};
+
+class TargetingEnemy : public Enemy {
+public:
+	int speed{}; // Speed of enemy (player speed is 2)
+	int upCount{}; // Checks how many attempts have been made to move up (used for speed less than 2)
+
+	TargetingEnemy(vector<int> enemyCoords, int level, char enemyChar, int damage, int speed) : Enemy(enemyCoords, level, enemyChar, damage) {
+		this->speed = speed;
+	}
+
+	// Returns path for ai to follow
+	vector<vector<int>> pathfind(vector<string>& map, vector<char> wallChars, char playerChar) {
+		// Find player position
+		vector<int> playerPosition;
+
+		for (int y = 0; y < map.size(); y++) {
+			for (int x = 0; x < map[y].length(); x++) {
+				if (map[y][x] == playerChar) {
+					playerPosition = { x, y };
+				}
+			}
+		}
+
+		// Initialize visited array to keep track of visited cells
+		vector<vector<bool>> visited(map.size(), vector<bool>(map[0].length(), false));
+
+		// Initialize queue for BFS
+		queue<vector<int>> q;
+
+		// Starting position of the enemy
+		vector<int> start = { enemyCoords[0], enemyCoords[1] };
+
+		// Enqueue the starting position
+		q.push(start);
+		visited[start[1]][start[0]] = true;
+
+		// Vector to store the path
+		vector<vector<int>> path;
+
+		// 2D vector to store parent information for path reconstruction
+		vector<vector<vector<int>>> parent(map.size(), vector<vector<int>>(map[0].length()));
+
+		// Directions for movement (up, down, left, right)
+		vector<vector<int>> directions = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} };
+
+		while (!q.empty()) {
+			vector<int> current = q.front();
+			q.pop();
+
+			// Check if the current position is the player's position
+			if (current == playerPosition) {
+				// Reconstruct the path from the player's position to the enemy's position
+				vector<int> currentPos = playerPosition;
+				while (currentPos != start) {
+					path.push_back(currentPos);
+					currentPos = parent[currentPos[1]][currentPos[0]];
+				}
+
+				//Check to see if there is no valid path
+				if (path.empty()) {
+					return {};
+				}
+
+				reverse(path.begin(), path.end());
+				return path;
+			}
+
+			// Explore neighbors
+			for (auto dir : directions) {
+				int nx = current[0] + dir[0];
+				int ny = current[1] + dir[1];
+
+				// Check if the neighbor is within the map boundaries and is not a wall
+				if (nx >= 0 && ny >= 0 && nx < map[0].length() && ny < map.size() && !visited[ny][nx] &&
+					find(wallChars.begin(), wallChars.end(), map[ny][nx]) == wallChars.end()) {
+					q.push({ nx, ny });
+					visited[ny][nx] = true;
+					parent[ny][nx] = current;
+				}
+			}
+		}
+
+		// No path found
+		return {};
+	}
+
+private:
+	vector<vector<int>> parent;
+};
+
+int main() {
 	// Vertical view distance in chars total (top to bottom) CANNOT be bigger than screen height (moves cursor to top left of screen, not terminal)
 	int vvd{ 51 };
 
@@ -68,6 +193,10 @@ int main() {
 		LevelGate('@', 1),
 		LevelGate('@', 0),
 		LevelGate('R', 0)
+	};
+
+	vector<TargetingEnemy> missiles{
+		TargetingEnemy({64, 31}, 1, 'X', -1, 1)
 	};
 
 	// World map
@@ -130,6 +259,7 @@ int main() {
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
+			"#                     F                                                                            #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
@@ -141,6 +271,7 @@ int main() {
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
+			"##########<>########################################################################################",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
@@ -149,9 +280,7 @@ int main() {
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
-			"#                                                                                                  #",
-			"#                                                                                                  #",
-			"#                                                                                                  #",
+			"#                                                               X                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
@@ -296,6 +425,20 @@ int main() {
 					playerPosition[0] -= 2;
 				}
 				r = true;
+			}
+			else {
+				continue;
+			}
+
+			for (auto& enemy : missiles) {
+				if (currLevel == enemy.level) {
+					vector<int> goal = enemy.pathfind(map, {'#', '<', '>'}, '0')[0];
+					if (!goal.empty()) {
+						map[enemy.enemyCoords[1]][enemy.enemyCoords[0]] = defaultFloorChar;
+						map[goal[1]][goal[0]] = 'X';
+						enemy.enemyCoords = goal;
+					}
+				}
 			}
 
 			// Checks to see if player runs into door, if so, check for key. If player has key needed, remove door
