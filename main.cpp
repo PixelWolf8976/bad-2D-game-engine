@@ -8,6 +8,7 @@
 #include <set>
 #include <climits>
 #include <algorithm>
+#include <list>
 
 using namespace std;
 
@@ -91,6 +92,7 @@ public:
 
 	// Returns path for ai to follow
 	vector<vector<int>> pathfind(vector<string>& map, vector<char> wallChars, char playerChar) {
+
 		// Find player position
 		vector<int> playerPosition;
 
@@ -125,6 +127,7 @@ public:
 		vector<vector<int>> directions = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} };
 
 		while (!q.empty()) {
+
 			vector<int> current = q.front();
 			q.pop();
 
@@ -137,22 +140,18 @@ public:
 					currentPos = parent[currentPos[1]][currentPos[0]];
 				}
 
-				//Check to see if there is no valid path
-				if (path.empty()) {
-					return {};
-				}
-
 				reverse(path.begin(), path.end());
 				return path;
 			}
 
 			// Explore neighbors
 			for (auto dir : directions) {
+
 				int nx = current[0] + dir[0];
 				int ny = current[1] + dir[1];
 
 				// Check if the neighbor is within the map boundaries and is not a wall
-				if (nx >= 0 && ny >= 0 && nx < map[0].length() && ny < map.size() && !visited[ny][nx] &&
+				if (nx >= 0 && ny >= 0 && ny < map.size() && nx < map[ny].size() && !visited[ny][nx] &&
 					find(wallChars.begin(), wallChars.end(), map[ny][nx]) == wallChars.end()) {
 					q.push({ nx, ny });
 					visited[ny][nx] = true;
@@ -178,6 +177,9 @@ int main() {
 
 	// The character the player plays as
 	char playerChar{ '0' };
+
+	// The characters that represent walls (seperate from doors)
+	vector<char> wallChars{ '#' };
 
 	// Available keys (Can have multiple instances of same key, but one verticle and one horizontal
 	// verticle doors: postition 0 = top, position 1 = bottom of door
@@ -271,7 +273,7 @@ int main() {
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
-			"##########  ########################################################################################",
+			"##########<>########################################################################################",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
@@ -426,17 +428,47 @@ int main() {
 				}
 				r = true;
 			}
+			else if (movementChar == ' ') {
+				// Wait
+			}
 			else {
 				continue;
 			}
 
+			// Generates vector for things enemy cannot move through
+			vector<char> enemyWalls{};
+
+			for (auto wall : wallChars) {
+				enemyWalls.push_back(wall);
+			}
+
+			for (auto key : keys) {
+				for (auto doors : key.openableDoors) {
+					for (auto door : doors) {
+						enemyWalls.push_back(door);
+					}
+				}
+			}
+
+			for (auto enemy : missiles) {
+				enemyWalls.push_back(enemy.enemyChar);
+			}
+
+			for (auto gate : gates) {
+				enemyWalls.push_back(gate.gateChar);
+			}
+
+			// Runs pathfinding on enemies and moves them accordingly
 			for (auto& enemy : missiles) {
 				if (currLevel == enemy.level) {
-					vector<int> goal = enemy.pathfind(map, {'#', '<', '>'}, '0')[0];
-					if (!goal.empty()) {
-						map[enemy.enemyCoords[1]][enemy.enemyCoords[0]] = defaultFloorChar;
-						map[goal[1]][goal[0]] = 'X';
-						enemy.enemyCoords = goal;
+					vector<vector<int>> finalPath = enemy.pathfind(map, enemyWalls, '0');
+					if (!finalPath.empty()) {
+						vector<int> goal = finalPath[0];
+						if (!goal.empty()) {
+							map[enemy.enemyCoords[1]][enemy.enemyCoords[0]] = defaultFloorChar;
+							map[goal[1]][goal[0]] = 'X';
+							enemy.enemyCoords = goal;
+						}
 					}
 				}
 			}
