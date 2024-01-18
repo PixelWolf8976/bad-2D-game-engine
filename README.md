@@ -10,7 +10,7 @@ Includes:
 
 Planned features:
 
- - Enemies (with pathfinding) (pathfinding done, just crashes if there is no valid path)
+ - Enemies (with pathfinding) (pathfinding done, just have to add speed and player damage)
  - Text to right of veiwScreen (currently blank)
  - Start screen
  - Goal (end of game)
