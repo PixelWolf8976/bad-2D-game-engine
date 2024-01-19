@@ -7,10 +7,11 @@ Includes:
  - Doors with keys
  - Moving veiw to not show entire map only nearby section
  - Support for different rooms
+ - Enemies (with pathfinding) (pathfinding done, just have to add player damage)
 
 Planned features:
 
- - Enemies (with pathfinding) (pathfinding done, just have to add speed and player damage)
+ - More enemies
  - Text to right of veiwScreen (currently blank)
  - Start screen
  - Goal (end of game)
