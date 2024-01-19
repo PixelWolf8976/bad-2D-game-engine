@@ -84,14 +84,14 @@ public:
 class TargetingEnemy : public Enemy {
 public:
 	int speed{}; // Speed of enemy (player speed is 2)
-	int upCount{}; // Checks how many attempts have been made to move up (used for speed less than 2)
+	int upCount{ 0 }; // Checks how many attempts have been made to move up
 
 	TargetingEnemy(vector<int> enemyCoords, int level, char enemyChar, int damage, int speed) : Enemy(enemyCoords, level, enemyChar, damage) {
 		this->speed = speed;
 	}
 
 	// Returns path for ai to follow
-	vector<vector<int>> pathfind(vector<string>& map, vector<char> wallChars, char playerChar) {
+	vector<vector<int>> pathfind(vector<string> map, vector<char> wallChars, char playerChar) {
 
 		// Find player position
 		vector<int> playerPosition;
@@ -168,8 +168,14 @@ private:
 	vector<vector<int>> parent;
 };
 
+/*==============================================*
+ *
+ * Methods for user (as in people using engine) *
+ *
+ *==============================================*/
+
 int main() {
-	// Vertical view distance in chars total (top to bottom) CANNOT be bigger than screen height (moves cursor to top left of screen, not terminal)
+	// Vertical view distance in chars total (top to bottom) CANNOT be bigger than screen height (moves cursor to top left of screen, not terminal for now)
 	int vvd{ 51 };
 
 	// Horizontal view distance in chars total (left to right)
@@ -198,7 +204,7 @@ int main() {
 	};
 
 	vector<TargetingEnemy> missiles{
-		TargetingEnemy({64, 31}, 1, 'X', -1, 1)
+		TargetingEnemy({64, 31}, 1, 'X', -1, 2)
 	};
 
 	// World map
@@ -273,7 +279,7 @@ int main() {
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
-			"##########<>########################################################################################",
+			"##########  ########################################################################################",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
 			"#                                                                                                  #",
@@ -338,9 +344,6 @@ int main() {
 			// Part of map to display
 			string display{ "" };
 
-			// Code to overwrite display
-			string displayClearer{ "\033[" + to_string(vvd * 2) + "A\r" };
-
 			// Which way the player moves
 			char movementChar{};
 
@@ -402,7 +405,7 @@ int main() {
 			}
 
 			// Output
-			cout << displayClearer << display;
+			cout << ("\033[" + to_string(vvd * 2) + "A\r") << display;
 
 			// Gets users input
 			movementChar = _getch();
@@ -433,44 +436,6 @@ int main() {
 			}
 			else {
 				continue;
-			}
-
-			// Generates vector for things enemy cannot move through
-			vector<char> enemyWalls{};
-
-			for (auto wall : wallChars) {
-				enemyWalls.push_back(wall);
-			}
-
-			for (auto key : keys) {
-				for (auto doors : key.openableDoors) {
-					for (auto door : doors) {
-						enemyWalls.push_back(door);
-					}
-				}
-			}
-
-			for (auto enemy : missiles) {
-				enemyWalls.push_back(enemy.enemyChar);
-			}
-
-			for (auto gate : gates) {
-				enemyWalls.push_back(gate.gateChar);
-			}
-
-			// Runs pathfinding on enemies and moves them accordingly
-			for (auto& enemy : missiles) {
-				if (currLevel == enemy.level) {
-					vector<vector<int>> finalPath = enemy.pathfind(map, enemyWalls, '0');
-					if (!finalPath.empty()) {
-						vector<int> goal = finalPath[0];
-						if (!goal.empty()) {
-							map[enemy.enemyCoords[1]][enemy.enemyCoords[0]] = defaultFloorChar;
-							map[goal[1]][goal[0]] = 'X';
-							enemy.enemyCoords = goal;
-						}
-					}
-				}
 			}
 
 			// Checks to see if player runs into door, if so, check for key. If player has key needed, remove door
@@ -605,6 +570,70 @@ int main() {
 						}
 						else if (map[playerPosition[1]][playerPosition[0] - 1] == door && r) {
 							playerPosition = oldCoords;
+						}
+					}
+				}
+			}
+
+			// Generates vector for things enemy cannot move through
+			vector<char> enemyWalls{};
+
+			for (auto wall : wallChars) {
+				enemyWalls.push_back(wall);
+			}
+
+			for (auto key : keys) {
+				for (auto doors : key.openableDoors) {
+					for (auto door : doors) {
+						enemyWalls.push_back(door);
+					}
+				}
+			}
+
+			for (auto enemy : missiles) {
+				enemyWalls.push_back(enemy.enemyChar);
+			}
+
+			for (auto gate : gates) {
+				enemyWalls.push_back(gate.gateChar);
+			}
+
+			// Runs pathfinding on enemies and moves them accordingly
+			for (auto& enemy : missiles) {
+				if (currLevel == enemy.level) {
+					vector<vector<int>> finalPath = enemy.pathfind(map, enemyWalls, playerChar);
+					if (!finalPath.empty()) {
+						vector<int> goal{};
+						int steps{};
+						if (finalPath.size() < enemy.speed) {
+							steps = finalPath.size() - 1;
+						}
+						else {
+							steps = enemy.speed;
+						}
+
+						// How many steps delayed code is because going up speed
+						int stepsDown{ 0 };
+
+						for (int i = 0; i < steps; i++) {
+							goal = finalPath[i - stepsDown];
+							if (enemy.upCount == 0 && ((goal[1] > enemy.enemyCoords[1]) || (goal[1] < enemy.enemyCoords[1]))) {
+								enemy.upCount = 1;
+								stepsDown++;
+							}
+							else if (enemy.upCount == 1 && ((goal[1] > enemy.enemyCoords[1]) || (goal[1] < enemy.enemyCoords[1]))) {
+								enemy.upCount = 0;
+								goal = finalPath[i - stepsDown];
+								map[enemy.enemyCoords[1]][enemy.enemyCoords[0]] = defaultFloorChar;
+								map[goal[1]][goal[0]] = enemy.enemyChar;
+								enemy.enemyCoords = goal;
+							}
+							else if (!((goal[1] > enemy.enemyCoords[1]) || (goal[1] < enemy.enemyCoords[1]))) {
+								goal = finalPath[i - stepsDown];
+								map[enemy.enemyCoords[1]][enemy.enemyCoords[0]] = defaultFloorChar;
+								map[goal[1]][goal[0]] = enemy.enemyChar;
+								enemy.enemyCoords = goal;
+							}
 						}
 					}
 				}
