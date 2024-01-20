@@ -5,14 +5,14 @@ Includes:
  - Player movement with wasd
  - Customisable map
  - Doors with keys
- - Moving veiw to not show entire map only nearby section
+ - Moving view to not show entire map only nearby section
  - Support for different rooms
  - Enemies (with pathfinding) (pathfinding done, just have to add player damage)
 
 Planned features:
 
  - More enemies
- - Text to right of veiwScreen (currently blank)
+ - Text to right of viewScreen (currently blank)
  - Start screen
  - Goal (end of game)
 
