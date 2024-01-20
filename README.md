@@ -8,6 +8,7 @@ Includes:
  - Moving view to not show entire map only nearby section
  - Support for different rooms
  - Enemies (with pathfinding) (pathfinding done, just have to add player damage)
+ - Example code on how to set up engine and make games
 
 Planned features:
 
